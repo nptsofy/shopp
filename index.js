@@ -277,4 +277,4 @@ client.on("interactionCreate", async (interaction) => {
 
 // ---------------- LOGIN ----------------
 
-client.login("MTQ4MDE1NzA3MDQ1MDg4ODc0Ng.G4iLS5.q4QhQN1sbO4PG0UgkDzsSSd35wsn5Kak39Grno");
+client.login(process.env.DISCORD_TOKEN);

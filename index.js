@@ -277,4 +277,4 @@ client.on("interactionCreate", async (interaction) => {
 
 // ---------------- LOGIN ----------------
 
-client.login("MTQ4MDE1NzA3MDQ1MDg4ODc0Ng.GfEWS8.YbINWUwOXJff9kD15VK_Sit624Qb9qahC_hiA4");
+client.login("MTQ4MDE1NzA3MDQ1MDg4ODc0Ng.GL4Ux-.Efg2MxSxOiyVXZq9T9ltoQ8AZxxiJzT8mlgeR0");

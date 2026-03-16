@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const {
   Client,
   GatewayIntentBits,
@@ -21,7 +23,6 @@ const client = new Client({
   partials: [Partials.Channel]
 });
 
-
 // ---------------- POINTS STORAGE ----------------
 
 let points = {};
@@ -33,15 +34,6 @@ function savePoints() {
   fs.writeFileSync("points.json", JSON.stringify(points, null, 2));
 }
 
-
-// ---------------- SHOP MEMORY ----------------
-
-let shopSent = false;
-if (fs.existsSync("shop_sent.json")) {
-  shopSent = JSON.parse(fs.readFileSync("shop_sent.json")).sent;
-}
-
-
 // ---------------- ROLE IDS ----------------
 
 const roleIDs = {
@@ -51,7 +43,6 @@ const roleIDs = {
   gold: "1480160407456059512"
 };
 
-
 // ---------------- SHOP ITEMS ----------------
 
 const shopItems = [
@@ -60,7 +51,6 @@ const shopItems = [
   { label: "Vip role", value: "vip", cost: 1000 },
   { label: "Gold role", value: "gold", cost: 1500 }
 ];
-
 
 // ---------------- SHOP EMBED ----------------
 
@@ -86,15 +76,12 @@ function createShopMenu() {
   );
 }
 
-
-// ---------------- PROFILE CARD GENERATOR (GRADIENT UI) ----------------
+// ---------------- PROFILE CARD GENERATOR ----------------
 
 async function generatePointsCard(member, userPoints) {
-
   const canvas = createCanvas(900, 260);
   const ctx = canvas.getContext("2d");
 
-  // background gradient
   const gradient = ctx.createLinearGradient(0, 0, 900, 0);
   gradient.addColorStop(0, "#3b3b3b");
   gradient.addColorStop(1, "#111111");
@@ -102,7 +89,6 @@ async function generatePointsCard(member, userPoints) {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // avatar
   const avatar = await loadImage(
     member.user.displayAvatarURL({ extension: "png", size: 256 })
   );
@@ -115,24 +101,20 @@ async function generatePointsCard(member, userPoints) {
   ctx.drawImage(avatar, 35, 35, 110, 110);
   ctx.restore();
 
-  // avatar border
   ctx.beginPath();
   ctx.arc(90, 90, 60, 0, Math.PI * 2);
   ctx.strokeStyle = "#777";
   ctx.lineWidth = 4;
   ctx.stroke();
 
-  // username
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 48px sans-serif";
   ctx.fillText(member.displayName, 170, 90);
 
-  // user id
   ctx.fillStyle = "#b9b9b9";
   ctx.font = "24px sans-serif";
   ctx.fillText(`ID ${member.id}`, 170, 125);
 
-  // divider line
   ctx.strokeStyle = "#555";
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -140,53 +122,31 @@ async function generatePointsCard(member, userPoints) {
   ctx.lineTo(840, 160);
   ctx.stroke();
 
-  // points label
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 34px sans-serif";
   ctx.fillText("POINTS", 150, 215);
 
-  // simple points icon
   ctx.beginPath();
   ctx.arc(95, 205, 15, 0, Math.PI * 2);
   ctx.strokeStyle = "#ddd";
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // points number
   ctx.font = "bold 40px sans-serif";
   ctx.fillText(userPoints.toString(), 760, 215);
 
   return canvas.toBuffer();
 }
 
-
 // ---------------- READY EVENT ----------------
 
-client.on("ready", async () => {
-
+client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}`);
-
-  if (!shopSent) {
-
-    const channel = await client.channels.fetch("1478843399007113428");
-
-    if (channel) {
-      await channel.send({
-        embeds: [createShopEmbed()],
-        components: [createShopMenu()]
-      });
-
-      fs.writeFileSync("shop_sent.json", JSON.stringify({ sent: true }));
-      console.log("Casio Shop embed sent (first time only).");
-    }
-  }
 });
-
 
 // ---------------- MESSAGE POINTS SYSTEM ----------------
 
 client.on("messageCreate", (msg) => {
-
   if (msg.author.bot) return;
 
   if (!points[msg.author.id]) points[msg.author.id] = 0;
@@ -196,19 +156,24 @@ client.on("messageCreate", (msg) => {
   savePoints();
 });
 
-
 // ---------------- COMMANDS ----------------
 
 client.on("messageCreate", async (msg) => {
-
   if (msg.author.bot) return;
 
   const args = msg.content.trim().split(" ");
   const cmd = args[0].toLowerCase();
 
-  // POINTS CARD
-  if (cmd === ".points") {
+  // SEND SHOP PANEL LIKE TICKET BOT
+  if (cmd === ".shoppanel") {
+    await msg.channel.send({
+      embeds: [createShopEmbed()],
+      components: [createShopMenu()]
+    });
+    return;
+  }
 
+  if (cmd === ".points") {
     const userPoints = points[msg.author.id] || 0;
 
     try {
@@ -223,23 +188,17 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  // SHOP COMMAND
   if (cmd === ".shop") {
-
     msg.reply({
       embeds: [createShopEmbed()],
       components: [createShopMenu()]
     });
-
   }
-
 });
-
 
 // ---------------- SHOP PURCHASE ----------------
 
 client.on("interactionCreate", async (interaction) => {
-
   if (!interaction.isStringSelectMenu()) return;
   if (interaction.customId !== "shop_menu") return;
 
@@ -271,9 +230,7 @@ client.on("interactionCreate", async (interaction) => {
     content: `✅ You bought **${item.label}** for **${item.cost} pts**!`,
     ephemeral: true
   });
-
 });
-
 
 // ---------------- LOGIN ----------------
 
